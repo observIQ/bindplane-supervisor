@@ -1,1 +1,5 @@
 local
+supervisor-binaries
+release_deps
+dist
+.DS_Store

@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+version: 2
+
+project_name: "bindplane-supervisor"
+
+before:
+  hooks:
+    # Prepare the repository for a release by placing dependencies in the release_deps directory
+    - make release-prep VERSION=v{{ .Version }} SUPERVISOR_VERSION={{ envOrDefault "SUPERVISOR_VERSION" "latest" }}
+
+# https://goreleaser.com/customization/build/
+builds:
+  - id: supervisor
+    builder: prebuilt
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    prebuilt:
+      path: release_deps/supervisor_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+    binary: supervisor_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+
+# https://goreleaser.com/customization/archive/
+archives:
+  - format: tar.gz
+    name_template: ""
+    files:
+      - src: release_deps/LICENSE
+        dst: "."
+        strip_parent: true
+      - src: release_deps/VERSION.txt
+        dst: "."
+        strip_parent: true
+    format_overrides:
+      - goos: windows
+        format: zip
