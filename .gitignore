@@ -3,3 +3,6 @@ supervisor-binaries
 release_deps
 dist
 .DS_Store
+
+# claude local settings
+settings.local.json

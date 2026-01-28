@@ -1,0 +1,38 @@
+# Bindplane Supervisor Configuration for Linux
+# Documentation: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor
+
+# OpAMP server connection settings
+server:
+  # Bindplane SaaS endpoint
+  endpoint: "wss://app.bindplane.com/v1/opamp"
+  headers:
+    # Replace with your Bindplane secret key from the Bindplane UI
+    X-Bindplane-Secret-Key: "<YOUR_SECRET_KEY>"
+
+# Supervisor capabilities reported to the OpAMP server
+capabilities:
+  reports_effective_config: true
+  reports_own_metrics: true
+  reports_health: true
+  reports_remote_config: true
+  reports_own_logs: true
+  reports_heartbeat: true
+  accepts_remote_config: true
+  accepts_restart_command: true
+
+# Managed OpenTelemetry Collector configuration
+agent:
+  # Path to your OpenTelemetry Collector executable
+  # Replace with the actual path to your collector binary
+  executable: "/opt/bindplane-collector/bin/collector"
+
+# Persistent storage for supervisor state
+storage:
+  directory: "/opt/bindplane-supervisor/storage"
+
+# Supervisor telemetry settings
+telemetry:
+  logs:
+    level: info
+    output_paths:
+      - "/opt/bindplane-supervisor/supervisor.log"

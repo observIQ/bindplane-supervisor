@@ -53,10 +53,12 @@ release-test:
 #
 # 1. Create a clean release_deps directory
 # 2. Download latest supervisor binaries to the release_deps directory.
-# 3. Add metadata files to the release_deps directory.
+# 3. Copy supervisor config files to the release_deps directory.
+# 4. Add metadata files to the release_deps directory.
 .PHONY: release-prep
 release-prep:
 	@rm -rf release_deps && mkdir -p release_deps
 	BIN_DIR=release_deps ./package-dependencies/retrieve-supervisor.sh
+	@cp -r configs/* release_deps/
 	@cp LICENSE release_deps/LICENSE
 	@echo '$(VERSION)' > release_deps/VERSION.txt
