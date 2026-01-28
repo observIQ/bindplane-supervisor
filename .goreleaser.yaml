@@ -37,6 +37,9 @@ archives:
       - src: release_deps/VERSION.txt
         dst: "."
         strip_parent: true
+      - src: release_deps/supervisor_config_{{ .Os }}.yaml
+        dst: "."
+        strip_parent: true
     format_overrides:
       - goos: windows
         format: zip
