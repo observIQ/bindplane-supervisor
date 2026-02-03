@@ -31,8 +31,8 @@ if [ -z "$BIN_DIR" ]; then
     BIN_DIR="$PROJECT_BASE/supervisor-binaries"
 fi
 
-# Create a clean directory for the supervisor binaries
-rm -rf "$BIN_DIR" && mkdir -p "$BIN_DIR"
+# Ensure the directory for the supervisor binaries exists
+mkdir -p "$BIN_DIR"
 
 # Check if the SUPERVISOR_VERSION is specified
 if [ -z "$SUPERVISOR_VERSION" ] || [ "$SUPERVISOR_VERSION" = "latest" ]; then
@@ -58,7 +58,7 @@ PLATFORMS="windows_amd64.exe linux_amd64 linux_arm64 darwin_arm64 darwin_amd64"
 
 for PLATFORM in $PLATFORMS; do
     DOWNLOAD_BINARY_NAME="opampsupervisor_${SUPERVISOR_VERSION}_${PLATFORM}"
-    BINARY_NAME="supervisor_${PLATFORM}"
+    BINARY_NAME="opampsupervisor_${PLATFORM}"
     DOWNLOAD_URL="${BASE_URL}/${DOWNLOAD_BINARY_NAME}"
     OUTPUT_FILE="${BIN_DIR}/${BINARY_NAME}"
 

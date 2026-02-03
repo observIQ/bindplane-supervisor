@@ -52,13 +52,19 @@ release-test:
 # Example: make release-prep VERSION=v0.1.0 SUPERVISOR_VERSION=v0.1.0
 #
 # 1. Create a clean release_deps directory
-# 2. Download latest supervisor binaries to the release_deps directory.
-# 3. Copy supervisor config files to the release_deps directory.
-# 4. Add metadata files to the release_deps directory.
+# 2. Create subdirectories for each platform in the release_deps directory.
+# 3. Download latest supervisor binaries to the release_deps directory.
+# 4. Copy supervisor config files to the release_deps directory for each platform.
+# 5. Copy packaging files to the release_deps directory for each platform.
+# 6. Add metadata files to the release_deps directory.
 .PHONY: release-prep
 release-prep:
 	@rm -rf release_deps && mkdir -p release_deps
+	@mkdir release_deps/darwin && mkdir release_deps/linux && mkdir release_deps/windows
 	BIN_DIR=release_deps ./package-dependencies/retrieve-supervisor.sh
-	@cp -r configs/* release_deps/
+	@cp configs/supervisor_config_darwin.yaml release_deps/darwin/supervisor-config.yaml
+	@cp configs/supervisor_config_linux.yaml release_deps/linux/supervisor-config.yaml
+	@cp configs/supervisor_config_windows.yaml release_deps/windows/supervisor-config.yaml
+	@cp -r packaging/linux/* release_deps/linux/
 	@cp LICENSE release_deps/LICENSE
 	@echo '$(VERSION)' > release_deps/VERSION.txt
