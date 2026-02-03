@@ -23,8 +23,8 @@ builds:
       - goos: windows
         goarch: arm64
     prebuilt:
-      path: release_deps/supervisor_{{ .Os }}_{{ .Arch }}{{ .Ext }}
-    binary: supervisor_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+      path: release_deps/opampsupervisor_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+    binary: supervisor
 
 # https://goreleaser.com/customization/archive/
 archives:
@@ -37,9 +37,46 @@ archives:
       - src: release_deps/VERSION.txt
         dst: "."
         strip_parent: true
-      - src: release_deps/supervisor_config_{{ .Os }}.yaml
+      - src: release_deps/{{ .Os }}/supervisor-config.yaml
         dst: "."
         strip_parent: true
     format_overrides:
       - goos: windows
         format: zip
+
+nfpms:
+  - id: supervisor
+    ids: 
+      - supervisor
+    file_name_template: "{{ .PackageName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    package_name: "bindplane-supervisor"
+    vendor: Bindplane
+    maintainer: Bindplane <support@bindplane.com>
+    description: "Bindplane distribution of the OpenTelemetry OpAMP Supervisor"
+    homepage: "https://github.com/observIQ/bindplane-supervisor"
+    license: "Apache-2.0"
+    formats:
+      - rpm
+      - deb
+    bindir: /usr/share/bindplane-supervisor
+    scripts:
+      preinstall: release_deps/linux/preinstall.sh
+      postinstall: release_deps/linux/postinstall.sh
+      preremove: release_deps/linux/preremove.sh
+      postremove: release_deps/linux/postremove.sh
+    contents:
+      - dst: /usr/share/bindplane-supervisor
+        type: dir
+        file_info:
+          mode: 0755
+      - src: release_deps/{{ .Os }}/supervisor-config.yaml
+        dst: /usr/share/bindplane-supervisor/supervisor-config.yaml
+      - src: release_deps/LICENSE
+        dst: /usr/share/bindplane-supervisor/LICENSE
+      - src: release_deps/VERSION.txt
+        dst: /usr/share/bindplane-supervisor/VERSION.txt
+      - dst: /usr/share/bindplane-supervisor/storage
+        type: dir
+        file_info:
+          mode: 0750
+      
