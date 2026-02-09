@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+    <!--
+        Bindplane Supervisor Windows Installer
+        This WiX file defines the MSI package for the Bindplane Supervisor service.
+
+        The service configuration is functionally equivalent to the Linux systemd service:
+        - Automatic start after system boot (delayed)
+        - Restart on failure with progressive delays (5s, 10s, 30s)
+        - Environment variables for collector integration
+    -->
+
+    <Product
+        Id="*"
+        Name="Bindplane Supervisor"
+        Language="1033"
+        Version="{{.Version}}"
+        Manufacturer="Bindplane"
+        UpgradeCode="8a1d4b5c-6e7f-4a2b-9c3d-1e5f6a7b8c9d">
+
+        <Package
+            Description="Bindplane distribution of the OpenTelemetry OpAMP Supervisor"
+            Manufacturer="Bindplane"
+            InstallerVersion="500"
+            Compressed="yes"
+            InstallScope="perMachine" />
+
+        <MajorUpgrade
+            DowngradeErrorMessage="A newer version of Bindplane Supervisor is already installed."
+            AllowSameVersionUpgrades="yes" />
+
+        <Media Id="1" Cabinet="bindplane_supervisor.cab" EmbedCab="yes" />
+
+        <!-- Installation directory structure -->
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLFOLDER" Name="bindplane-supervisor">
+                    <Directory Id="STORAGEFOLDER" Name="storage" />
+                </Directory>
+            </Directory>
+        </Directory>
+
+        <!-- Main component group containing all installed files -->
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+
+            <!-- Supervisor executable and service definition -->
+            <Component Id="SupervisorExecutable" Guid="1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d" Win64="yes">
+                <File Id="SupervisorExe" Source="supervisor.exe" KeyPath="yes" />
+
+                <!-- Windows Service Installation -->
+                <ServiceInstall
+                    Id="BindplaneSupervisorService"
+                    Name="bindplane-supervisor"
+                    DisplayName="Bindplane Supervisor"
+                    Description="Bindplane distribution of the OpenTelemetry OpAMP Supervisor"
+                    Type="ownProcess"
+                    Start="auto"
+                    ErrorControl="normal"
+                    Arguments="--config &quot;[INSTALLFOLDER]supervisor-config.yaml&quot;">
+                </ServiceInstall>
+
+                <!-- Service control: start on install, stop on uninstall -->
+                <ServiceControl
+                    Id="BindplaneSupervisorServiceControl"
+                    Name="bindplane-supervisor"
+                    Start="install"
+                    Stop="both"
+                    Remove="uninstall"
+                    Wait="yes" />
+            </Component>
+
+            <!-- Configuration file -->
+            <Component Id="ConfigFile" Guid="2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e" Win64="yes">
+                <File Id="SupervisorConfig" Source="release_deps/windows/supervisor-config.yaml" KeyPath="yes" />
+            </Component>
+
+            <!-- License file -->
+            <Component Id="LicenseFile" Guid="3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f" Win64="yes">
+                <File Id="License" Source="release_deps/LICENSE" KeyPath="yes" />
+            </Component>
+
+            <!-- Version file -->
+            <Component Id="VersionFile" Guid="4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a" Win64="yes">
+                <File Id="Version" Source="release_deps/VERSION.txt" KeyPath="yes" />
+            </Component>
+
+            <!-- Environment variables that Bindplane expects for the collector process. -->
+            <Component Id="EnvironmentVariables" Guid="5e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b" Win64="yes">
+                <Environment
+                    Id="OIQ_OTEL_COLLECTOR_HOME"
+                    Name="OIQ_OTEL_COLLECTOR_HOME"
+                    Value="[INSTALLFOLDER]"
+                    Permanent="no"
+                    Part="all"
+                    Action="set"
+                    System="yes" />
+                <Environment
+                    Id="OIQ_OTEL_COLLECTOR_STORAGE"
+                    Name="OIQ_OTEL_COLLECTOR_STORAGE"
+                    Value="[STORAGEFOLDER]"
+                    Permanent="no"
+                    Part="all"
+                    Action="set"
+                    System="yes" />
+            </Component>
+        </ComponentGroup>
+
+        <!-- Storage directory component -->
+        <ComponentGroup Id="StorageComponents" Directory="STORAGEFOLDER">
+            <Component Id="StorageDirectory" Guid="6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c" Win64="yes">
+                <CreateFolder />
+            </Component>
+        </ComponentGroup>
+
+        <!-- Feature definition -->
+        <Feature Id="ProductFeature" Title="Bindplane Supervisor" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+            <ComponentGroupRef Id="StorageComponents" />
+        </Feature>
+
+    </Product>
+</Wix>
