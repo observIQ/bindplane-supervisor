@@ -62,6 +62,7 @@ release-prep:
 	@rm -rf release_deps && mkdir -p release_deps
 	@mkdir release_deps/darwin && mkdir release_deps/linux && mkdir release_deps/windows
 	BIN_DIR=release_deps ./package-dependencies/retrieve-supervisor.sh
+	@cp packaging/windows/wix.wxs release_deps/windows/wix.wxs
 	@cp configs/supervisor_config_darwin.yaml release_deps/darwin/supervisor-config.yaml
 	@cp configs/supervisor_config_linux.yaml release_deps/linux/supervisor-config.yaml
 	@cp configs/supervisor_config_windows.yaml release_deps/windows/supervisor-config.yaml

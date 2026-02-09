@@ -79,4 +79,15 @@ nfpms:
         type: dir
         file_info:
           mode: 0750
-      
+
+# https://goreleaser.com/customization/msi/
+msi:
+  - id: supervisor-msi
+    ids:
+      - supervisor
+    name: "bindplane-supervisor_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    wxs: release_deps/windows/wix.wxs
+    extra_files:
+      - release_deps/windows/supervisor-config.yaml
+      - release_deps/LICENSE
+      - release_deps/VERSION.txt
