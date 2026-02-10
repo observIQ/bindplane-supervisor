@@ -1,4 +1,4 @@
-# Bindplane Supervisor Configuration for Windows
+# Bindplane Supervisor Default Configuration for Windows
 # Documentation: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor
 
 # OpAMP server connection settings
@@ -24,11 +24,11 @@ capabilities:
 agent:
   # Path to your OpenTelemetry Collector executable
   # Replace with the actual path to your collector binary
-  executable: "C:\\Program Files\\bindplane-collector\\bin\\collector.exe"
+  executable: "C:\\Program Files\\bindplane-supervisor\\bin\\collector.exe"
 
 # Persistent storage for supervisor state
 storage:
-  directory: "C:\\Program Files\\bindplane-supervisor\\storage"
+  directory: "C:\\Program Files\\bindplane-supervisor\\supervisor_storage"
 
 # Supervisor telemetry settings
 telemetry:

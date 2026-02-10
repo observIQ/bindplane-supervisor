@@ -71,10 +71,15 @@ nfpms:
           mode: 0755
       - src: release_deps/{{ .Os }}/supervisor-config.yaml
         dst: /usr/share/bindplane-supervisor/supervisor-config.yaml
+        type: config|noreplace
       - src: release_deps/LICENSE
         dst: /usr/share/bindplane-supervisor/LICENSE
       - src: release_deps/VERSION.txt
         dst: /usr/share/bindplane-supervisor/VERSION.txt
+      - dst: /usr/share/bindplane-supervisor/supervisor_storage
+        type: dir
+        file_info:
+          mode: 0750
       - dst: /usr/share/bindplane-supervisor/storage
         type: dir
         file_info:
