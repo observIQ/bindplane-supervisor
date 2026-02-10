@@ -285,10 +285,32 @@ EOF
 install_collector() {
     url="$1"
     collector_dir=$(dirname "$BINDPLANE_COLLECTOR_BIN")
-
     echo "Installing collector binary to: $BINDPLANE_COLLECTOR_BIN"
     mkdir -p "$collector_dir"
-    curl -fSL -o "$BINDPLANE_COLLECTOR_BIN" "$url"
+
+    tmp_dir=$(mktemp -d)
+    tmp_file="${tmp_dir}/collector_download"
+
+    echo "Downloading collector from: $url"
+    curl -fSL -o "$tmp_file" "$url"
+
+    # Strip query parameters for file type detection
+    url_path="${url%%\?*}"
+
+    case "$url_path" in
+        *.tar.gz|*.tgz)
+            echo "Extracting tar.gz archive..."
+            tar -xzf "$tmp_file" -C "$tmp_dir" --strip-components=0
+            rm -f "$tmp_file"
+            found=$(find "$tmp_dir" -type f | head -1)
+            mv "$found" "$BINDPLANE_COLLECTOR_BIN"
+            ;;
+        *)
+            mv "$tmp_file" "$BINDPLANE_COLLECTOR_BIN"
+            ;;
+    esac
+
+    rm -rf "$tmp_dir"
     chmod 755 "$BINDPLANE_COLLECTOR_BIN"
     echo "Collector installed successfully"
 }
