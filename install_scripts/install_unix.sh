@@ -15,6 +15,11 @@
 
 set -e
 
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Error: this script must be run as root" >&2
+    exit 1
+fi
+
 # Read optional package overrides. Users should deploy the override
 # file before installing for the first time. The override should
 # not be modified unless uninstalling and re-installing.
