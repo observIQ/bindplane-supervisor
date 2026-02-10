@@ -186,19 +186,44 @@ function Install-Collector {
     param([string]$URL)
 
     $collectorDir = Split-Path -Parent $CollectorBin
-
     Write-Host "Installing collector binary to: $CollectorBin"
     if (-not (Test-Path $collectorDir)) {
         New-Item -ItemType Directory -Path $collectorDir | Out-Null
     }
 
+    $tmpDir = Join-Path $env:TEMP "bindplane-collector-install"
+    if (Test-Path $tmpDir) {
+        Remove-Item -Recurse -Force $tmpDir
+    }
+    New-Item -ItemType Directory -Path $tmpDir | Out-Null
+
+    $tmpFile = Join-Path $tmpDir "collector_download"
+
+    Write-Host "Downloading collector from: $URL"
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri $URL -OutFile $CollectorBin -UseBasicParsing
+        Invoke-WebRequest -Uri $URL -OutFile $tmpFile -UseBasicParsing
     } catch {
         Write-Error "Error: failed to download collector: $_"
+        Remove-Item -Recurse -Force $tmpDir
         exit 1
     }
+    Write-Host "Download complete"
+
+    # Strip query parameters for file type detection
+    $urlPath = ($URL -split '\?')[0]
+
+    if ($urlPath -match '\.zip$') {
+        Write-Host "Extracting zip archive..."
+        $extractDir = Join-Path $tmpDir "extracted"
+        Expand-Archive -Path $tmpFile -DestinationPath $extractDir -Force
+        $found = Get-ChildItem -Path $extractDir -Recurse -File | Select-Object -First 1
+        Copy-Item -Path $found.FullName -Destination $CollectorBin -Force
+    } else {
+        Copy-Item -Path $tmpFile -Destination $CollectorBin -Force
+    }
+
+    Remove-Item -Recurse -Force $tmpDir
     Write-Host "Collector installed successfully"
 }
 
