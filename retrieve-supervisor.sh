@@ -27,8 +27,7 @@ set -e
 # Check if the BIN_DIR is specified
 if [ -z "$BIN_DIR" ]; then
     BASEDIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-    PROJECT_BASE="$BASEDIR/.."
-    BIN_DIR="$PROJECT_BASE/supervisor-binaries"
+    BIN_DIR="$BASEDIR/supervisor-binaries"
 fi
 
 # Ensure the directory for the supervisor binaries exists

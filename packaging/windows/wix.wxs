@@ -28,7 +28,8 @@
 
         <MajorUpgrade
             DowngradeErrorMessage="A newer version of Bindplane Supervisor is already installed."
-            AllowSameVersionUpgrades="yes" />
+            AllowSameVersionUpgrades="yes"
+            Schedule="afterInstallExecute" />
 
         <Media Id="1" Cabinet="bindplane_supervisor.cab" EmbedCab="yes" />
 
@@ -37,6 +38,7 @@
             <Directory Id="ProgramFiles64Folder">
                 <Directory Id="INSTALLFOLDER" Name="bindplane-supervisor">
                     <Directory Id="STORAGEFOLDER" Name="storage" />
+                    <Directory Id="SUPERVISORSTORAGEFOLDER" Name="supervisor_storage" />
                 </Directory>
             </Directory>
         </Directory>
@@ -71,7 +73,7 @@
             </Component>
 
             <!-- Configuration file -->
-            <Component Id="ConfigFile" Guid="2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e" Win64="yes">
+            <Component Id="ConfigFile" Guid="2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e" Win64="yes" NeverOverwrite="yes">
                 <File Id="SupervisorConfig" Source="release_deps/windows/supervisor-config.yaml" KeyPath="yes" />
             </Component>
 

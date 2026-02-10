@@ -1,4 +1,4 @@
-# Bindplane Supervisor Configuration for Linux
+# Bindplane Supervisor Default Configuration for Linux
 # Documentation: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor
 
 # OpAMP server connection settings
@@ -24,11 +24,11 @@ capabilities:
 agent:
   # Path to your OpenTelemetry Collector executable
   # Replace with the actual path to your collector binary
-  executable: "/opt/bindplane-collector/bin/collector"
+  executable: "/opt/bindplane-supervisor/bin/collector"
 
 # Persistent storage for supervisor state
 storage:
-  directory: "/opt/bindplane-supervisor/storage"
+  directory: "/opt/bindplane-supervisor/supervisor_storage"
 
 # Supervisor telemetry settings
 telemetry:
