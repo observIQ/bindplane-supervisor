@@ -62,10 +62,11 @@ release-prep:
 	@rm -rf release_deps && mkdir -p release_deps
 	@mkdir release_deps/darwin && mkdir release_deps/linux && mkdir release_deps/windows
 	BIN_DIR=release_deps ./retrieve-supervisor.sh
-	@cp packaging/windows/wix.wxs release_deps/windows/wix.wxs
+	@cp -r packaging/darwin/* release_deps/darwin/
+	@cp -r packaging/linux/* release_deps/linux/
+	@cp -r packaging/windows/* release_deps/windows/
 	@cp configs/supervisor_config_darwin.yaml release_deps/darwin/supervisor-config.yaml
 	@cp configs/supervisor_config_linux.yaml release_deps/linux/supervisor-config.yaml
 	@cp configs/supervisor_config_windows.yaml release_deps/windows/supervisor-config.yaml
-	@cp -r packaging/linux/* release_deps/linux/
 	@cp LICENSE release_deps/LICENSE
 	@echo '$(VERSION)' > release_deps/VERSION.txt

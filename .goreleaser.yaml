@@ -40,6 +40,9 @@ archives:
       - src: release_deps/{{ .Os }}/supervisor-config.yaml
         dst: "."
         strip_parent: true
+      - src: release_deps/{{ .Os }}/*.plist # will only copy the plist file for darwin archives
+        dst: "."
+        strip_parent: true
     format_overrides:
       - goos: windows
         format: zip
