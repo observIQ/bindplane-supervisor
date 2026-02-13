@@ -37,7 +37,7 @@ install_group_user() {
     # Create the user
     if ! id "${BINDPLANE_SUPERVISOR_USER}" >/dev/null 2>&1; then
         echo "Creating user ${BINDPLANE_SUPERVISOR_USER}"
-        useradd --shell /sbin/nologin --system "${BINDPLANE_SUPERVISOR_USER} -g ${BINDPLANE_SUPERVISOR_GROUP}"
+        useradd --shell /sbin/nologin --system "${BINDPLANE_SUPERVISOR_USER}" -g "${BINDPLANE_SUPERVISOR_GROUP}"
     else
         echo "User ${BINDPLANE_SUPERVISOR_USER} already exists"
     fi

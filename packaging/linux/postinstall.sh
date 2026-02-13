@@ -338,8 +338,6 @@ exit "\$RETVAL"
 EOF
 }
 
-finish_permissions() {}
-
 manage_sysv_service() {
   chmod 755 /etc/init.d/bindplane-supervisor
   echo "configured sysv service"
@@ -410,5 +408,4 @@ manage_service() {
 
 install
 install_service
-finish_permissions
 manage_service
