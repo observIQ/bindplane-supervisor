@@ -249,7 +249,7 @@ server:
   endpoint: "${BINDPLANE_ENDPOINT}"
   headers:
     # Replace with your Bindplane secret key from the Bindplane UI
-    X-Bindplane-Secret-Key: "${BINDPLANE_SECRET_KEY}"
+    "X-Bindplane-Authorization": "Secret-Key ${BINDPLANE_SECRET_KEY}"
 
 # Supervisor capabilities reported to the OpAMP server
 capabilities:
