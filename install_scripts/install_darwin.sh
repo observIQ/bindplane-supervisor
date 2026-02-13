@@ -269,6 +269,7 @@ capabilities:
   reports_heartbeat: true
   accepts_remote_config: true
   accepts_restart_command: true
+  reports_available_components: true
 
 # Managed OpenTelemetry Collector configuration
 agent:
