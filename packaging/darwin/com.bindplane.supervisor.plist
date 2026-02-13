@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service identity -->
+    <key>Label</key>
+    <string>com.bindplane.supervisor</string>
+
+    <!-- Executable and arguments -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>[INSTALLDIR]/supervisor</string>
+        <string>--config</string>
+        <string>[INSTALLDIR]/supervisor-config.yaml</string>
+    </array>
+
+    <!-- Working directory -->
+    <key>WorkingDirectory</key>
+    <string>[INSTALLDIR]</string>
+
+    <!-- Environment variables -->
+    <!-- Environment variables Bindplane expects for the collector process. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin</string>
+        <key>OIQ_OTEL_COLLECTOR_HOME</key>
+        <string>[INSTALLDIR]</string>
+        <key>OIQ_OTEL_COLLECTOR_STORAGE</key>
+        <string>[INSTALLDIR]/storage</string>
+    </dict>
+
+    <!-- Start on load -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Keep alive -->
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Minimum restart interval in seconds -->
+    <key>ThrottleInterval</key>
+    <integer>5</integer>
+
+    <!-- File descriptor limit -->
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65000</integer>
+    </dict>
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65000</integer>
+    </dict>
+
+    <!-- STDERR Logging -->
+    <key>StandardErrorPath</key>
+    <string>/var/log/bindplane-supervisor.err</string>
+</dict>
+</plist>
