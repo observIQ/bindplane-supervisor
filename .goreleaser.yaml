@@ -47,6 +47,7 @@ archives:
       - goos: windows
         format: zip
 
+# https://goreleaser.com/customization/nfpm/
 nfpms:
   - id: supervisor
     ids: 
@@ -99,3 +100,36 @@ msi:
       - release_deps/windows/supervisor-config.yaml
       - release_deps/LICENSE
       - release_deps/VERSION.txt
+
+# https://goreleaser.com/customization/checksum/
+checksum:
+  name_template: "{{ .ProjectName }}-v{{ .Version }}-SHA256SUMS"
+  algorithm: sha256
+
+# https://goreleaser.com/customization/release/
+release:
+  draft: false
+
+  # publish to a prerelease first
+  prerelease: "true"
+  extra_files:
+    - glob: "./install_scripts/install_unix.sh"
+    - glob: "./install_scripts/install_darwin.sh"
+    - glob: "./install_scripts/install_windows.ps1"
+
+# https://goreleaser.com/customization/changelog/
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug Fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 10
+    - title: "Dependencies"
+      regexp: "^.*deps[(\\w)]*:+.*$"
+      order: 30
+    - title: Other
+      order: 999
