@@ -24,6 +24,9 @@ jobs:
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+      - name: Flatten MSI artifacts
+        shell: bash
+        run: cp dist/msi/**/*.msi dist/
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
