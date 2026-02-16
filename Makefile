@@ -46,7 +46,12 @@ add-license:
 release-test:
 	goreleaser release --parallelism 4 --skip=publish --skip=validate --skip=sign --clean --snapshot --verbose
 
-# This target prepares the repository for a release
+# This target runs a test release for the Windows build only
+.PHONY: release-test-windows
+release-test-windows:
+	goreleaser release -f .goreleaser-windows.yaml --parallelism 4 --skip=publish --skip=validate --skip=sign --clean --snapshot --verbose
+
+# This target prepares the repository for a release (Linux and macOS)
 # Called by goreleaser before building release
 # Set VERSION to specify the version of the release. Set SUPERVISOR_VERSION to specify the version of the supervisor to retrieve.
 # Example: make release-prep VERSION=v0.1.0 SUPERVISOR_VERSION=v0.1.0
@@ -60,13 +65,25 @@ release-test:
 .PHONY: release-prep
 release-prep:
 	@rm -rf release_deps && mkdir -p release_deps
-	@mkdir release_deps/darwin && mkdir release_deps/linux && mkdir release_deps/windows
-	BIN_DIR=release_deps ./retrieve-supervisor.sh
+	@mkdir release_deps/darwin && mkdir release_deps/linux
+	BIN_DIR=release_deps ./retrieve-supervisor/retrieve-supervisor.sh
 	@cp -r packaging/darwin/* release_deps/darwin/
 	@cp -r packaging/linux/* release_deps/linux/
-	@cp -r packaging/windows/* release_deps/windows/
 	@cp configs/supervisor_config_darwin.yaml release_deps/darwin/supervisor-config.yaml
 	@cp configs/supervisor_config_linux.yaml release_deps/linux/supervisor-config.yaml
+	@cp LICENSE release_deps/LICENSE
+	@echo '$(VERSION)' > release_deps/VERSION.txt
+
+# This target prepares the repository for a release (Windows only)
+# Called by goreleaser before building the release
+# Set VERSION to specify the version of the release. Set SUPERVISOR_VERSION to specify the version of the supervisor to retrieve.
+# Example: make release-prep-windows VERSION=v0.1.0 SUPERVISOR_VERSION=v0.1.0
+.PHONY: release-prep-windows
+release-prep-windows:
+	@rm -rf release_deps && mkdir -p release_deps
+	@mkdir release_deps/windows
+	BIN_DIR=release_deps ./retrieve-supervisor/retrieve-supervisor-windows.sh
+	@cp -r packaging/windows/* release_deps/windows/
 	@cp configs/supervisor_config_windows.yaml release_deps/windows/supervisor-config.yaml
 	@cp LICENSE release_deps/LICENSE
 	@echo '$(VERSION)' > release_deps/VERSION.txt

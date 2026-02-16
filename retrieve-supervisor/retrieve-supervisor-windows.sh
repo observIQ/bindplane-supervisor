@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script retrieves supervisor binaries from the OpenTelemetry Collector Releases repository.
+# This script retrieves the windows supervisor binary from the OpenTelemetry Collector Releases repository.
 # https://github.com/open-telemetry/opentelemetry-collector-releases
 #
-# The binaries are placed in the directory specified by $BIN_DIR.
-# If not specified, the binaries are placed in a directory called "supervisor-binaries" in the root of the repository.
+# The binary is placed in the directory specified by $BIN_DIR.
+# If not specified, the binary is placed in a directory called "supervisor-binaries" in the root of the repository.
 # If the directory does not exist, it is created.
 #
 # The version of the supervisor to retrieve is specified by $SUPERVISOR_VERSION.
@@ -27,7 +27,7 @@ set -e
 # Check if the BIN_DIR is specified
 if [ -z "$BIN_DIR" ]; then
     BASEDIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-    BIN_DIR="$BASEDIR/supervisor-binaries"
+    BIN_DIR="$BASEDIR/../supervisor-binaries"
 fi
 
 # Ensure the directory for the supervisor binaries exists
@@ -48,12 +48,12 @@ fi
 SUPERVISOR_VERSION=$(echo $SUPERVISOR_VERSION | sed 's/v//')
 echo "Using supervisor version: $SUPERVISOR_VERSION"
 
-# Retrieve the supervisor binaries
+# Retrieve the supervisor binary
 # Base URL for the releases (note: tag contains slashes which need to be URL-encoded)
 BASE_URL="https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/cmd%2Fopampsupervisor%2Fv${SUPERVISOR_VERSION}"
 
-# Define the platforms we need to download
-PLATFORMS="windows_amd64.exe linux_amd64 linux_arm64 darwin_arm64 darwin_amd64"
+# Define the platform we need to download
+PLATFORMS="windows_amd64.exe"
 
 for PLATFORM in $PLATFORMS; do
     DOWNLOAD_BINARY_NAME="opampsupervisor_${SUPERVISOR_VERSION}_${PLATFORM}"

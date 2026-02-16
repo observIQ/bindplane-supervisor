@@ -154,9 +154,10 @@ The scripts also support `--uninstall` to cleanly remove all files and service r
 
 Releases are triggered by pushing a `v*` git tag. The pipeline:
 
-1. `make release-prep` downloads upstream supervisor binaries via `retrieve-supervisor.sh`, stages platform configs and packaging files into `release_deps/`
-2. GoReleaser Pro builds all artifacts (archives, deb, rpm, msi) from the staged `release_deps/`
-3. All artifacts plus install scripts and SHA256 checksums are published as a GitHub prerelease
+1. `make release-prep` downloads upstream linux/darwin supervisor binaries via `retrieve-supervisor/retrieve-supervisor.sh`, stages platform configs and packaging files into `release_deps/`
+2. `make release-prep-windows` downloads the upstream windows supervisor binary via `retrieve-supervisor/retrieve-supervisor-windows.sh`, stages windows configs and packaging files into `release_deps/`
+3. GoReleaser Pro builds linux/darwin artifacts (archives, deb, rpm) from the staged `release_deps/`. A separate Windows GoReleaser config builds windows artifacts (zip, msi) on a Windows runner.
+4. All artifacts plus install scripts and SHA256 checksums are published as a GitHub prerelease
 
 ### Artifact Matrix
 

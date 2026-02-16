@@ -71,10 +71,14 @@ git push origin v1.0.0
 
 ### Pipeline
 
-1. **`make release-prep`** — Prepares the `release_deps/` directory:
-   - Downloads upstream OpenTelemetry OpAMP Supervisor binaries via `retrieve-supervisor.sh` (from [opentelemetry-collector-releases](https://github.com/open-telemetry/opentelemetry-collector-releases))
-   - Copies platform-specific config templates from `configs/` into `release_deps/{darwin,linux,windows}/`
-   - Copies packaging files from `packaging/` into `release_deps/{darwin,linux,windows}/`
+1. **`make release-prep`** — Prepares the `release_deps/` directory for linux/darwin:
+   - Downloads upstream linux/darwin OpenTelemetry OpAMP Supervisor binaries via `retrieve-supervisor/retrieve-supervisor.sh` (from [opentelemetry-collector-releases](https://github.com/open-telemetry/opentelemetry-collector-releases))
+   - Copies platform-specific config templates from `configs/` into `release_deps/{darwin,linux}/`
+   - Copies packaging files from `packaging/` into `release_deps/{darwin,linux}/`
+2. **`make release-prep-windows`** — Prepares the `release_deps/` directory for windows:
+   - Downloads the upstream windows OpenTelemetry OpAMP Supervisor binary via `retrieve-supervisor/retrieve-supervisor-windows.sh`
+   - Copies windows config templates from `configs/` into `release_deps/windows/`
+   - Copies packaging files from `packaging/` into `release_deps/windows/`
    - Writes `VERSION.txt` and copies `LICENSE`
 2. **GoReleaser build** — Builds all archives, native packages, and MSI installers from the prepared `release_deps/`
 3. **GitHub prerelease** — Publishes all artifacts as a GitHub prerelease

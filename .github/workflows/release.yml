@@ -4,17 +4,47 @@ on:
     tags:
       - 'v*'
 jobs:
+  release-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Add WiX Toolset to PATH
+        shell: bash
+        run: echo "${WIX}bin" >> $GITHUB_PATH
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser-pro
+          version: "v2.8.2"
+          args: release -f .goreleaser-windows.yaml --parallelism 4 --skip=publish --skip=validate --clean --timeout 30m
+        env:
+          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            dist/*.zip
+            dist/*.msi
+
   release:
+    needs: release-windows
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install msitools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wixl
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-artifacts
+          path: windows-artifacts/
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -26,3 +56,18 @@ jobs:
           GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+      - name: Append Windows Checksums
+        env:
+          GH_TOKEN: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          CHECKSUM_FILE="dist/bindplane-supervisor-${TAG}-SHA256SUMS"
+          # Compute checksums for windows artifacts
+          for f in windows-artifacts/*.zip windows-artifacts/*.msi; do
+            if [ -f "$f" ]; then
+              sha256sum "$f" | sed 's|windows-artifacts/||' >> "$CHECKSUM_FILE"
+            fi
+          done
+          # Upload windows artifacts and updated checksum file to the release
+          gh release upload "$TAG" windows-artifacts/*.zip windows-artifacts/*.msi --clobber
+          gh release upload "$TAG" "$CHECKSUM_FILE" --clobber
