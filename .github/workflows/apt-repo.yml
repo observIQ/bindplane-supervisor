@@ -1,0 +1,159 @@
+name: Update APT Repository
+
+on:
+  release:
+    types: [published]
+
+  # Allow manual trigger for re-processing a release
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to process (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  update-apt-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install APT repository tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev gzip
+
+      # GPG_SIGNING: Uncomment to import the GPG key for signing repository metadata.
+      # Requires the following GitHub secrets:
+      #   GPG_PRIVATE_KEY  - ASCII-armored private key (gpg --armor --export-secret-keys KEY_ID)
+      #   GPG_PASSPHRASE   - Passphrase for the private key
+      #   GPG_KEY_ID       - Key ID or email used to identify the signing key
+      #
+      # - name: Import GPG key
+      #   run: |
+      #     echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+      #     echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
+      #     gpgconf --kill gpg-agent
+      #     gpgconf --launch gpg-agent
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Download .deb files from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p debs
+          cd debs
+          gh release download "${{ steps.tag.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "*.deb"
+          echo "Downloaded .deb files:"
+          ls -la *.deb
+
+      - name: Build APT repository metadata
+        run: |
+          # Set up the pool directory structure.
+          # All .deb files live under pool/main/ so APT can fetch them.
+          mkdir -p gh-pages/pool/main
+          cp debs/*.deb gh-pages/pool/main/
+
+          # Generate architecture-specific Packages indexes.
+          for arch in amd64 arm64; do
+            dir="gh-pages/dists/stable/main/binary-${arch}"
+            mkdir -p "${dir}"
+
+            # Scan the pool for .deb files matching this architecture and
+            # produce the Packages index. dpkg-scanpackages paths are relative
+            # to the repository root (gh-pages/).
+            (cd gh-pages && dpkg-scanpackages --arch "${arch}" pool/main) \
+              > "${dir}/Packages"
+
+            gzip -9c "${dir}/Packages" > "${dir}/Packages.gz"
+
+            echo "Packages index for ${arch}:"
+            cat "${dir}/Packages"
+          done
+
+      - name: Generate Release file
+        run: |
+          release_file="gh-pages/dists/stable/Release"
+          {
+            echo "Origin: observIQ"
+            echo "Label: bindplane-supervisor"
+            echo "Suite: stable"
+            echo "Codename: stable"
+            echo "Architectures: amd64 arm64"
+            echo "Components: main"
+            echo "Date: $(date -Ru)"
+            echo "Description: APT repository for bindplane-supervisor"
+
+            # Checksums cover every Packages / Packages.gz file under dists/.
+            # APT uses these to verify integrity of downloaded index files.
+            echo "MD5Sum:"
+            (cd gh-pages/dists/stable && find . -name 'Packages*' -type f | sort | while read -r file; do
+              size=$(stat -c%s "${file}")
+              md5=$(md5sum "${file}" | awk '{print $1}')
+              # Strip leading "./" to get the relative path APT expects.
+              printf " %s %16d %s\n" "${md5}" "${size}" "${file#./}"
+            done)
+
+            echo "SHA256:"
+            (cd gh-pages/dists/stable && find . -name 'Packages*' -type f | sort | while read -r file; do
+              size=$(stat -c%s "${file}")
+              sha256=$(sha256sum "${file}" | awk '{print $1}')
+              printf " %s %16d %s\n" "${sha256}" "${size}" "${file#./}"
+            done)
+          } > "${release_file}"
+
+          echo "Release file contents:"
+          cat "${release_file}"
+
+      # GPG_SIGNING: Uncomment to create InRelease (inline-signed) and Release.gpg
+      # (detached signature). APT uses these to verify the repository is authentic.
+      #
+      # - name: Sign Release file
+      #   run: |
+      #     # InRelease: clearsigned version of Release (preferred by modern APT)
+      #     gpg --batch --yes --pinentry-mode loopback \
+      #       --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+      #       --default-key "${{ secrets.GPG_KEY_ID }}" \
+      #       --clearsign \
+      #       -o gh-pages/dists/stable/InRelease \
+      #       gh-pages/dists/stable/Release
+      #
+      #     # Release.gpg: detached signature (fallback for older APT versions)
+      #     gpg --batch --yes --pinentry-mode loopback \
+      #       --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+      #       --default-key "${{ secrets.GPG_KEY_ID }}" \
+      #       --detach-sign --armor \
+      #       -o gh-pages/dists/stable/Release.gpg \
+      #       gh-pages/dists/stable/Release
+      #
+      # - name: Export public key for users
+      #   run: |
+      #     # Publish the public key so users can add it to their APT keyring.
+      #     gpg --armor --export "${{ secrets.GPG_KEY_ID }}" \
+      #       > gh-pages/signing-key.gpg
+
+      - name: Commit and push to gh-pages
+        working-directory: gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "Update APT repository for ${{ steps.tag.outputs.tag }}"
+          git push
