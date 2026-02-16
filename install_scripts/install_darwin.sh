@@ -39,19 +39,21 @@ FILE_PATH=""
 COLLECTOR_URL=""
 BINDPLANE_ENDPOINT=""
 BINDPLANE_SECRET_KEY=""
+UNINSTALL=""
 
 usage() {
     cat <<EOF
 Usage: $0 [options]
 
 Options:
-  --download-url <url>   URL to download the supervisor tar.gz archive
-  --file-path <path>     Path to a local supervisor tar.gz archive or binary
-  --collector-url <url>  URL to download the collector binary
-  --endpoint <url>       (required) Bindplane endpoint URL (e.g. wss://app.bindplane.com/v1/opamp)
-  --secret-key <key>     (required) Bindplane secret key for authentication
+  --uninstall                Uninstall bindplane-supervisor and remove all associated files
+  -d, --download-url <url>   URL to download the supervisor tar.gz archive
+  -f, --file-path <path>     Path to a local supervisor tar.gz archive or binary
+  -c, --collector-url <url>  URL to download the collector binary
+  -e, --endpoint <url>       (required for install) Bindplane endpoint URL (e.g. wss://app.bindplane.com/v1/opamp)
+  -s, --secret-key <key>     (required for install) Bindplane secret key for authentication
 
-If neither --download-url nor --file-path is provided, the script
+If neither --download-url (-d) nor --file-path (-f) is provided, the script
 checks for an existing installation and errors if none is found.
 EOF
     exit 1
@@ -60,45 +62,49 @@ EOF
 parse_args() {
     while [ $# -gt 0 ]; do
         case "$1" in
-            --download-url)
+            -d|--download-url)
                 if [ -z "$2" ]; then
-                    echo "Error: --download-url requires a value" >&2
+                    echo "Error: $1 requires a value" >&2
                     exit 1
                 fi
                 DOWNLOAD_URL="$2"
                 shift 2
                 ;;
-            --file-path)
+            -f|--file-path)
                 if [ -z "$2" ]; then
-                    echo "Error: --file-path requires a value" >&2
+                    echo "Error: $1 requires a value" >&2
                     exit 1
                 fi
                 FILE_PATH="$2"
                 shift 2
                 ;;
-            --collector-url)
+            -c|--collector-url)
                 if [ -z "$2" ]; then
-                    echo "Error: --collector-url requires a value" >&2
+                    echo "Error: $1 requires a value" >&2
                     exit 1
                 fi
                 COLLECTOR_URL="$2"
                 shift 2
                 ;;
-            --endpoint)
+            -e|--endpoint)
                 if [ -z "$2" ]; then
-                    echo "Error: --endpoint requires a value" >&2
+                    echo "Error: $1 requires a value" >&2
                     exit 1
                 fi
                 BINDPLANE_ENDPOINT="$2"
                 shift 2
                 ;;
-            --secret-key)
+            -s|--secret-key)
                 if [ -z "$2" ]; then
-                    echo "Error: --secret-key requires a value" >&2
+                    echo "Error: $1 requires a value" >&2
                     exit 1
                 fi
                 BINDPLANE_SECRET_KEY="$2"
                 shift 2
+                ;;
+            --uninstall)
+                UNINSTALL=true
+                shift 1
                 ;;
             *)
                 echo "Error: unknown option '$1'" >&2
@@ -107,18 +113,22 @@ parse_args() {
         esac
     done
 
+    if [ "$UNINSTALL" = true ]; then
+        return
+    fi
+
     if [ -n "$DOWNLOAD_URL" ] && [ -n "$FILE_PATH" ]; then
-        echo "Error: --download-url and --file-path are mutually exclusive" >&2
+        echo "Error: --download-url (-d) and --file-path (-f) are mutually exclusive" >&2
         exit 1
     fi
 
     if [ -z "$BINDPLANE_ENDPOINT" ]; then
-        echo "Error: --endpoint is required" >&2
+        echo "Error: --endpoint (-e) is required" >&2
         exit 1
     fi
 
     if [ -z "$BINDPLANE_SECRET_KEY" ]; then
-        echo "Error: --secret-key is required" >&2
+        echo "Error: --secret-key (-s) is required" >&2
         exit 1
     fi
 }
@@ -198,7 +208,7 @@ check_service_installed() {
     fi
 
     echo "Error: no existing bindplane-supervisor installation found" >&2
-    echo "Use --download-url or --file-path to install a package" >&2
+    echo "Use --download-url (-d) or --file-path (-f) to install a package" >&2
     exit 1
 }
 
@@ -259,6 +269,7 @@ capabilities:
   reports_heartbeat: true
   accepts_remote_config: true
   accepts_restart_command: true
+  reports_available_components: true
 
 # Managed OpenTelemetry Collector configuration
 agent:
@@ -313,8 +324,32 @@ install_collector() {
     echo "Collector installed successfully"
 }
 
+uninstall_supervisor() {
+    echo "Uninstalling bindplane-supervisor..."
+
+    # Unload LaunchDaemon
+    launchctl unload "$PLIST_PATH" 2>/dev/null || true
+
+    # Remove plist
+    rm -f "$PLIST_PATH"
+
+    # Remove install directory
+    rm -rf "${BINDPLANE_SUPERVISOR_INSTALL_DIR}"
+
+    # Remove error log
+    rm -f /var/log/bindplane-supervisor.err
+
+    echo "bindplane-supervisor has been uninstalled successfully"
+}
+
 # Main
 parse_args "$@"
+
+if [ "$UNINSTALL" = true ]; then
+    uninstall_supervisor
+    exit 0
+fi
+
 check_requirements
 
 # Supervisor installation

@@ -15,12 +15,11 @@
 #Requires -RunAsAdministrator
 
 param(
+    [switch]$Uninstall,
     [string]$DownloadURL,
     [string]$FilePath,
     [string]$CollectorURL,
-    [Parameter(Mandatory=$true)]
     [string]$Endpoint,
-    [Parameter(Mandatory=$true)]
     [string]$SecretKey
 )
 
@@ -43,11 +42,16 @@ function Show-Usage {
 Usage: .\install_windows.ps1 [options]
 
 Options:
+  -Uninstall           Uninstall bindplane-supervisor and remove all associated files
   -DownloadURL <url>   URL to download the supervisor MSI package
   -FilePath <path>     Path to a local MSI package file
   -CollectorURL <url>  URL to download the collector binary
-  -Endpoint <url>      (required) Bindplane endpoint URL (e.g. wss://app.bindplane.com/v1/opamp)
-  -SecretKey <key>     (required) Bindplane secret key for authentication
+  -Endpoint <url>      (required for install) Bindplane endpoint URL (e.g. wss://app.bindplane.com/v1/opamp)
+  -SecretKey <key>     (required for install) Bindplane secret key for authentication
+
+PowerShell supports parameter abbreviation. You can shorten any parameter
+to its unique prefix (e.g. -E for -Endpoint, -S for -SecretKey, -D for
+-DownloadURL, -F for -FilePath, -C for -CollectorURL).
 
 If neither -DownloadURL nor -FilePath is provided, the script
 checks for an existing installation and errors if none is found.
@@ -160,6 +164,7 @@ capabilities:
   reports_heartbeat: true
   accepts_remote_config: true
   accepts_restart_command: true
+  reports_available_components: true
 
 # Managed OpenTelemetry Collector configuration
 agent:
@@ -227,7 +232,64 @@ function Install-Collector {
     Write-Host "Collector installed successfully"
 }
 
+function Uninstall-Supervisor {
+    Write-Host "Uninstalling bindplane-supervisor..."
+
+    Stop-SupervisorService
+
+    # Attempt MSI uninstall via registry
+    $uninstallKey = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" -ErrorAction SilentlyContinue |
+        Get-ItemProperty |
+        Where-Object { $_.DisplayName -eq "Bindplane Supervisor" }
+
+    if ($uninstallKey) {
+        $productCode = $uninstallKey.PSChildName
+        Write-Host "Found MSI product: $productCode, uninstalling..."
+        $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $productCode /quiet /norestart" -Wait -PassThru
+        if ($process.ExitCode -ne 0) {
+            Write-Warning "MSI uninstall exited with code $($process.ExitCode)"
+        } else {
+            Write-Host "MSI package removed successfully"
+        }
+    } else {
+        Write-Host "No MSI package found, proceeding with manual cleanup..."
+    }
+
+    # Remove collector binary and bin directory
+    if (Test-Path $CollectorBin) {
+        Remove-Item -Force $CollectorBin
+    }
+    $binDir = Split-Path -Parent $CollectorBin
+    if ((Test-Path $binDir) -and -not (Get-ChildItem $binDir)) {
+        Remove-Item -Force $binDir
+    }
+
+    # Remove install directory and remaining contents
+    if (Test-Path $InstallDir) {
+        Remove-Item -Recurse -Force $InstallDir
+    }
+
+    Write-Host "bindplane-supervisor has been uninstalled successfully"
+}
+
 # --- Main ---
+
+# Uninstall mode takes precedence over all other flags
+if ($Uninstall) {
+    Uninstall-Supervisor
+    exit 0
+}
+
+# Validate required install parameters
+if (-not $Endpoint) {
+    Write-Error "Error: -Endpoint is required"
+    exit 1
+}
+
+if (-not $SecretKey) {
+    Write-Error "Error: -SecretKey is required"
+    exit 1
+}
 
 # Validate mutually exclusive options
 if ($DownloadURL -and $FilePath) {
