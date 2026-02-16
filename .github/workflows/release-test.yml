@@ -17,7 +17,15 @@ jobs:
       - name: Install msitools
         run: |
           sudo apt-get update
-          sudo apt-get install -y msitools=0.106-1
+          sudo apt-get install -y ninja-build valac libglib2.0-dev libgcab-dev libgsf-1-dev libxml2-dev gobject-introspection libgirepository1.0-dev bison perl
+          pip3 install meson
+          curl -L -o msitools-0.106.tar.xz https://download.gnome.org/sources/msitools/0.106/msitools-0.106.tar.xz
+          tar xf msitools-0.106.tar.xz
+          cd msitools-0.106
+          meson setup build
+          ninja -C build
+          sudo ninja -C build install
+          sudo ldconfig
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
