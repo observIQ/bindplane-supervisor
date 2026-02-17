@@ -36,6 +36,7 @@ PLIST_PATH="/Library/LaunchDaemons/${PLIST_LABEL}.plist"
 # Script arguments
 DOWNLOAD_URL=""
 FILE_PATH=""
+VERSION=""
 COLLECTOR_URL=""
 BINDPLANE_ENDPOINT=""
 BINDPLANE_SECRET_KEY=""
@@ -49,12 +50,13 @@ Options:
   --uninstall                Uninstall bindplane-supervisor and remove all associated files
   -d, --download-url <url>   URL to download the supervisor tar.gz archive
   -f, --file-path <path>     Path to a local supervisor tar.gz archive or binary
+  -v, --version <version>    Release version to install (e.g. v0.145.0 or 0.145.0)
   -c, --collector-url <url>  URL to download the collector binary
   -e, --endpoint <url>       (required for install) Bindplane endpoint URL (e.g. wss://app.bindplane.com/v1/opamp)
   -s, --secret-key <key>     (required for install) Bindplane secret key for authentication
 
-If neither --download-url (-d) nor --file-path (-f) is provided, the script
-checks for an existing installation and errors if none is found.
+If none of --download-url (-d), --file-path (-f), or --version (-v) is provided,
+the script checks for an existing installation and errors if none is found.
 EOF
     exit 1
 }
@@ -76,6 +78,14 @@ parse_args() {
                     exit 1
                 fi
                 FILE_PATH="$2"
+                shift 2
+                ;;
+            -v|--version)
+                if [ -z "$2" ]; then
+                    echo "Error: $1 requires a value" >&2
+                    exit 1
+                fi
+                VERSION="$2"
                 shift 2
                 ;;
             -c|--collector-url)
@@ -122,6 +132,16 @@ parse_args() {
         exit 1
     fi
 
+    if [ -n "$VERSION" ] && [ -n "$DOWNLOAD_URL" ]; then
+        echo "Error: --version (-v) and --download-url (-d) are mutually exclusive" >&2
+        exit 1
+    fi
+
+    if [ -n "$VERSION" ] && [ -n "$FILE_PATH" ]; then
+        echo "Error: --version (-v) and --file-path (-f) are mutually exclusive" >&2
+        exit 1
+    fi
+
     if [ -z "$BINDPLANE_ENDPOINT" ]; then
         echo "Error: --endpoint (-e) is required" >&2
         exit 1
@@ -134,7 +154,7 @@ parse_args() {
 }
 
 check_requirements() {
-    if [ -n "$DOWNLOAD_URL" ] || [ -n "$COLLECTOR_URL" ]; then
+    if [ -n "$DOWNLOAD_URL" ] || [ -n "$COLLECTOR_URL" ] || [ -n "$VERSION" ]; then
         if ! command -v curl > /dev/null 2>&1; then
             echo "Error: curl is required for downloading but was not found" >&2
             exit 1
@@ -196,6 +216,25 @@ download_and_install_supervisor() {
     rm -rf "$tmp_dir"
 }
 
+resolve_version_url() {
+    # Strip leading 'v' if present to get bare version
+    bare_version=$(echo "$VERSION" | sed 's/^v//')
+
+    # Detect architecture
+    machine=$(uname -m)
+    case "$machine" in
+        x86_64)  arch="amd64" ;;
+        arm64)   arch="arm64" ;;
+        *)
+            echo "Error: unsupported architecture '$machine'" >&2
+            exit 1
+            ;;
+    esac
+
+    DOWNLOAD_URL="https://github.com/observIQ/supervisor/releases/download/v${bare_version}/bindplane-supervisor_${bare_version}_darwin_${arch}.tar.gz"
+    echo "Resolved version ${bare_version} to URL: $DOWNLOAD_URL"
+}
+
 check_service_installed() {
     if [ -f "$PLIST_PATH" ]; then
         echo "Existing installation found (LaunchDaemon plist)"
@@ -208,7 +247,7 @@ check_service_installed() {
     fi
 
     echo "Error: no existing bindplane-supervisor installation found" >&2
-    echo "Use --download-url (-d) or --file-path (-f) to install a package" >&2
+    echo "Use --download-url (-d), --file-path (-f), or --version (-v) to install a package" >&2
     exit 1
 }
 
@@ -351,6 +390,11 @@ if [ "$UNINSTALL" = true ]; then
 fi
 
 check_requirements
+
+# Resolve version to download URL if specified
+if [ -n "$VERSION" ]; then
+    resolve_version_url
+fi
 
 # Supervisor installation
 if [ -n "$DOWNLOAD_URL" ]; then

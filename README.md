@@ -34,6 +34,15 @@ sudo curl -fSL https://github.com/observIQ/supervisor/releases/latest/download/i
   --secret-key "YOUR_SECRET_KEY"
 ```
 
+Install a specific version (automatically detects architecture and package manager):
+
+```sh
+sudo sh install_unix.sh \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY" \
+  -v "v0.145.0"
+```
+
 Install from a specific download URL:
 
 ```sh
@@ -82,6 +91,15 @@ sudo curl -fSL https://github.com/observIQ/supervisor/releases/latest/download/i
   --secret-key "YOUR_SECRET_KEY"
 ```
 
+Install a specific version (automatically detects architecture):
+
+```sh
+sudo sh install_darwin.sh \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY" \
+  -v "v0.145.0"
+```
+
 Install from a specific download URL:
 
 ```sh
@@ -111,6 +129,15 @@ sudo sh install_darwin.sh --uninstall
 #### Windows
 
 **Prerequisites:** Administrator PowerShell, .NET Framework with TLS 1.2 support
+
+Install a specific version (automatically detects architecture):
+
+```powershell
+.\install_windows.ps1 `
+  -Endpoint "wss://app.bindplane.com/v1/opamp" `
+  -SecretKey "YOUR_SECRET_KEY" `
+  -Version "v0.145.0"
+```
 
 Install from a download URL:
 
@@ -156,6 +183,7 @@ Uninstall:
 | `-s, --secret-key` | `-SecretKey` | Yes | Bindplane secret key |
 | `-d, --download-url` | `-DownloadURL` | No | URL to download the supervisor package |
 | `-f, --file-path` | `-FilePath` | No | Path to a local package file |
+| `-v, --version` | `-Version` | No | Release version to install (e.g. `v0.145.0`) |
 | `-c, --collector-url` | `-CollectorURL` | No | URL to download the collector binary |
 | `--uninstall` | `-Uninstall` | No | Uninstall and remove all files |
 
