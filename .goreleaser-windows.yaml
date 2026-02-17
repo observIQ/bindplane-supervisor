@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+version: 2
+
+project_name: "bindplane-supervisor"
+
+before:
+  hooks:
+    # Prepare the repository for a release by placing windows dependencies in the release_deps directory
+    - make release-prep-windows VERSION=v{{ .Version }} SUPERVISOR_VERSION={{ envOrDefault "SUPERVISOR_VERSION" "latest" }}
+
+# https://goreleaser.com/customization/build/
+builds:
+  - id: supervisor
+    builder: prebuilt
+    goos:
+      - windows
+    goarch:
+      - amd64
+    prebuilt:
+      path: release_deps/opampsupervisor_{{ .Os }}_{{ .Arch }}{{ .Ext }}
+    binary: supervisor
+
+# https://goreleaser.com/customization/archive/
+archives:
+  - format: zip
+    name_template: ""
+    files:
+      - src: release_deps/LICENSE
+        dst: "."
+        strip_parent: true
+      - src: release_deps/VERSION.txt
+        dst: "."
+        strip_parent: true
+      - src: release_deps/{{ .Os }}/supervisor-config.yaml
+        dst: "."
+        strip_parent: true
+
+# https://goreleaser.com/customization/msi/
+msi:
+  - id: supervisor-msi
+    ids:
+      - supervisor
+    name: "bindplane-supervisor_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    wxs: release_deps/windows/wix.wxs
+    extra_files:
+      - release_deps/windows/supervisor-config.yaml
+      - release_deps/LICENSE
+      - release_deps/VERSION.txt
+
+# Checksum disabled — main release job computes checksums for all artifacts
+checksum:
+  disable: true
+
+# Release disabled — main release job handles the GitHub release
+release:
+  disable: true

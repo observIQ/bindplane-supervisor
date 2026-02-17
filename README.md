@@ -24,25 +24,160 @@ Bindplane Supervisor is a distribution of the [OpenTelemetry Supervisor](https:/
 
 #### Linux
 
-[INSERT INSTALLATION INSTRUCTIONS HERE]
+**Prerequisites:** root access, `curl`, `dpkg` or `rpm`
 
-#### Windows
+Install from the latest release:
 
-[INSERT INSTALLATION INSTRUCTIONS HERE]
+```sh
+sudo curl -fSL https://github.com/observIQ/supervisor/releases/latest/download/install_unix.sh | sudo sh -s -- \
+  --endpoint "wss://app.bindplane.com/v1/opamp" \
+  --secret-key "YOUR_SECRET_KEY"
+```
+
+Install from a specific download URL:
+
+```sh
+sudo sh install_unix.sh \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY" \
+  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_linux_amd64.deb"
+```
+
+Install from a local package file:
+
+```sh
+sudo sh install_unix.sh \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY" \
+  -f "./bindplane-supervisor_v1.0.0_linux_amd64.deb"
+```
+
+Install with a collector binary:
+
+```sh
+sudo sh install_unix.sh \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY" \
+  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_linux_amd64.deb" \
+  -c "https://example.com/otelcol-contrib"
+```
+
+Uninstall:
+
+```sh
+sudo sh install_unix.sh --uninstall
+```
+
+> **Note:** The install script installs Bindplane Supervisor as a systemd service. Configuration is written to `/opt/bindplane-supervisor/supervisor-config.yaml`.
 
 #### macOS
 
-[INSERT INSTALLATION INSTRUCTIONS HERE]
+**Prerequisites:** root access, `curl`
 
-#### Kubernetes
+Install from the latest release:
 
-[INSERT INSTALLATION INSTRUCTIONS HERE]
+```sh
+sudo curl -fSL https://github.com/observIQ/supervisor/releases/latest/download/install_darwin.sh | sudo sh -s -- \
+  --endpoint "wss://app.bindplane.com/v1/opamp" \
+  --secret-key "YOUR_SECRET_KEY"
+```
+
+Install from a specific download URL:
+
+```sh
+sudo sh install_darwin.sh \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY" \
+  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_darwin_arm64.tar.gz"
+```
+
+Install from a local file:
+
+```sh
+sudo sh install_darwin.sh \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY" \
+  -f "./bindplane-supervisor_v1.0.0_darwin_arm64.tar.gz"
+```
+
+Uninstall:
+
+```sh
+sudo sh install_darwin.sh --uninstall
+```
+
+> **Note:** The install script registers a LaunchDaemon (`com.bindplane.supervisor`). Configuration is written to `/opt/bindplane-supervisor/supervisor-config.yaml`.
+
+#### Windows
+
+**Prerequisites:** Administrator PowerShell, .NET Framework with TLS 1.2 support
+
+Install from a download URL:
+
+```powershell
+.\install_windows.ps1 `
+  -Endpoint "wss://app.bindplane.com/v1/opamp" `
+  -SecretKey "YOUR_SECRET_KEY" `
+  -DownloadURL "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_windows_amd64.msi"
+```
+
+Install from a local MSI file:
+
+```powershell
+.\install_windows.ps1 `
+  -Endpoint "wss://app.bindplane.com/v1/opamp" `
+  -SecretKey "YOUR_SECRET_KEY" `
+  -FilePath ".\bindplane-supervisor_v1.0.0_windows_amd64.msi"
+```
+
+Install with a collector binary:
+
+```powershell
+.\install_windows.ps1 `
+  -Endpoint "wss://app.bindplane.com/v1/opamp" `
+  -SecretKey "YOUR_SECRET_KEY" `
+  -DownloadURL "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_windows_amd64.msi" `
+  -CollectorURL "https://example.com/otelcol-contrib.exe"
+```
+
+Uninstall:
+
+```powershell
+.\install_windows.ps1 -Uninstall
+```
+
+> **Note:** The install script installs an MSI package and registers a Windows service (`bindplane-supervisor`). Configuration is written to `C:\Program Files\bindplane-supervisor\supervisor-config.yaml`.
+
+### Script Flags Reference
+
+| Flag (Unix) | Flag (PowerShell) | Required | Description |
+|---|---|---|---|
+| `-e, --endpoint` | `-Endpoint` | Yes | Bindplane endpoint URL |
+| `-s, --secret-key` | `-SecretKey` | Yes | Bindplane secret key |
+| `-d, --download-url` | `-DownloadURL` | No | URL to download the supervisor package |
+| `-f, --file-path` | `-FilePath` | No | Path to a local package file |
+| `-c, --collector-url` | `-CollectorURL` | No | URL to download the collector binary |
+| `--uninstall` | `-Uninstall` | No | Uninstall and remove all files |
 
 ## Configuration
 
-[INSERT CONFIGURATION INSTRUCTIONS HERE IF NEEDED]
+The install scripts automatically generate a `supervisor-config.yaml` file with the provided endpoint and secret key. The generated config includes:
 
-[INSERT EXAMPLE CONFIG HERE IF NEEDED]
+- **Server connection** — OpAMP endpoint URL and authentication headers
+- **Capabilities** — Reporting and remote config acceptance flags
+- **Agent** — Path to the managed OpenTelemetry Collector executable
+- **Storage** — Directory for persistent supervisor state
+- **Telemetry** — Log level and output paths
+
+The config file location depends on the platform:
+
+| Platform | Config Directory |
+|---|---|
+| Linux | `/opt/bindplane-supervisor/` |
+| macOS | `/opt/bindplane-supervisor/` |
+| Windows | `C:\Program Files\bindplane-supervisor\` |
+
+For advanced configuration options, see the upstream [OpenTelemetry OpAMP Supervisor documentation](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/opampsupervisor).
 
 # Community
 

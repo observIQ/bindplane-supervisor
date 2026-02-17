@@ -14,14 +14,10 @@ builds:
     builder: prebuilt
     goos:
       - linux
-      - windows
       - darwin
     goarch:
       - amd64
       - arm64
-    ignore:
-      - goos: windows
-        goarch: arm64
     prebuilt:
       path: release_deps/opampsupervisor_{{ .Os }}_{{ .Arch }}{{ .Ext }}
     binary: supervisor
@@ -43,9 +39,6 @@ archives:
       - src: release_deps/{{ .Os }}/*.plist # will only copy the plist file for darwin archives
         dst: "."
         strip_parent: true
-    format_overrides:
-      - goos: windows
-        format: zip
 
 # https://goreleaser.com/customization/nfpm/
 nfpms:
@@ -89,22 +82,13 @@ nfpms:
         file_info:
           mode: 0750
 
-# https://goreleaser.com/customization/msi/
-msi:
-  - id: supervisor-msi
-    ids:
-      - supervisor
-    name: "bindplane-supervisor_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    wxs: release_deps/windows/wix.wxs
-    extra_files:
-      - release_deps/windows/supervisor-config.yaml
-      - release_deps/LICENSE
-      - release_deps/VERSION.txt
-
 # https://goreleaser.com/customization/checksum/
 checksum:
   name_template: "{{ .ProjectName }}-v{{ .Version }}-SHA256SUMS"
   algorithm: sha256
+  extra_files:
+    - glob: "./windows-artifacts/*.zip"
+    - glob: "./windows-artifacts/*.msi"
 
 # https://goreleaser.com/customization/release/
 release:
@@ -116,6 +100,8 @@ release:
     - glob: "./install_scripts/install_unix.sh"
     - glob: "./install_scripts/install_darwin.sh"
     - glob: "./install_scripts/install_windows.ps1"
+    - glob: "./windows-artifacts/*.zip"
+    - glob: "./windows-artifacts/*.msi"
 
 # https://goreleaser.com/customization/changelog/
 changelog:

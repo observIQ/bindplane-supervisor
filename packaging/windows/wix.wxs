@@ -15,7 +15,7 @@
         Id="*"
         Name="Bindplane Supervisor"
         Language="1033"
-        Version="{{.Version}}"
+        Version="{{.RawVersion}}"
         Manufacturer="Bindplane"
         UpgradeCode="8a1d4b5c-6e7f-4a2b-9c3d-1e5f6a7b8c9d">
 
