@@ -38,6 +38,7 @@ fi
 # Script arguments
 DOWNLOAD_URL=""
 FILE_PATH=""
+VERSION=""
 COLLECTOR_URL=""
 BINDPLANE_ENDPOINT=""
 BINDPLANE_SECRET_KEY=""
@@ -51,12 +52,13 @@ Options:
   --uninstall                Uninstall bindplane-supervisor and remove all associated files
   -d, --download-url <url>   URL to download the supervisor deb/rpm package
   -f, --file-path <path>     Path to a local deb/rpm package file
+  -v, --version <version>    Release version to install (e.g. v0.145.0 or 0.145.0)
   -c, --collector-url <url>  URL to download the collector binary
   -e, --endpoint <url>       (required for install) Bindplane endpoint URL (e.g. wss://app.bindplane.com/v1/opamp)
   -s, --secret-key <key>     (required for install) Bindplane secret key for authentication
 
-If neither --download-url (-d) nor --file-path (-f) is provided, the script
-checks for an existing installation and errors if none is found.
+If none of --download-url (-d), --file-path (-f), or --version (-v) is provided,
+the script checks for an existing installation and errors if none is found.
 EOF
     exit 1
 }
@@ -78,6 +80,14 @@ parse_args() {
                     exit 1
                 fi
                 FILE_PATH="$2"
+                shift 2
+                ;;
+            -v|--version)
+                if [ -z "$2" ]; then
+                    echo "Error: $1 requires a value" >&2
+                    exit 1
+                fi
+                VERSION="$2"
                 shift 2
                 ;;
             -c|--collector-url)
@@ -121,6 +131,16 @@ parse_args() {
 
     if [ -n "$DOWNLOAD_URL" ] && [ -n "$FILE_PATH" ]; then
         echo "Error: --download-url (-d) and --file-path (-f) are mutually exclusive" >&2
+        exit 1
+    fi
+
+    if [ -n "$VERSION" ] && [ -n "$DOWNLOAD_URL" ]; then
+        echo "Error: --version (-v) and --download-url (-d) are mutually exclusive" >&2
+        exit 1
+    fi
+
+    if [ -n "$VERSION" ] && [ -n "$FILE_PATH" ]; then
+        echo "Error: --version (-v) and --file-path (-f) are mutually exclusive" >&2
         exit 1
     fi
 
@@ -193,6 +213,28 @@ download_and_install_package() {
     rm -rf "$tmp_dir"
 }
 
+resolve_version_url() {
+    # Strip leading 'v' if present to get bare version
+    bare_version=$(echo "$VERSION" | sed 's/^v//')
+
+    # Detect architecture
+    machine=$(uname -m)
+    case "$machine" in
+        x86_64)  arch="amd64" ;;
+        aarch64) arch="arm64" ;;
+        *)
+            echo "Error: unsupported architecture '$machine'" >&2
+            exit 1
+            ;;
+    esac
+
+    # Detect package manager for extension
+    pkg_type=$(detect_package_manager)
+
+    DOWNLOAD_URL="https://github.com/observIQ/supervisor/releases/download/v${bare_version}/bindplane-supervisor_v${bare_version}_linux_${arch}.${pkg_type}"
+    echo "Resolved version ${bare_version} to URL: $DOWNLOAD_URL"
+}
+
 check_service_installed() {
     if [ -f /etc/systemd/system/bindplane-supervisor.service ]; then
         echo "Existing installation found (systemd service)"
@@ -210,12 +252,12 @@ check_service_installed() {
     fi
 
     echo "Error: no existing bindplane-supervisor installation found" >&2
-    echo "Use --download-url (-d) or --file-path (-f) to install a package" >&2
+    echo "Use --download-url (-d), --file-path (-f), or --version (-v) to install a package" >&2
     exit 1
 }
 
 check_requirements() {
-    if [ -n "$DOWNLOAD_URL" ] || [ -n "$COLLECTOR_URL" ]; then
+    if [ -n "$DOWNLOAD_URL" ] || [ -n "$COLLECTOR_URL" ] || [ -n "$VERSION" ]; then
         if ! command -v curl > /dev/null 2>&1; then
             echo "Error: curl is required for downloading but was not found" >&2
             exit 1
@@ -373,6 +415,11 @@ if [ "$UNINSTALL" = true ]; then
 fi
 
 check_requirements
+
+# Resolve version to download URL if specified
+if [ -n "$VERSION" ]; then
+    resolve_version_url
+fi
 
 # Supervisor installation
 if [ -n "$DOWNLOAD_URL" ]; then

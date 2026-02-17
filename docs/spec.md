@@ -137,7 +137,7 @@ These are set system-wide on Windows (via WiX) and in the LaunchDaemon environme
 
 The `install_unix.sh`, `install_darwin.sh`, and `install_windows.ps1` scripts are self-contained. They are published as release artifacts alongside the packages and can be `curl`-piped or downloaded independently. Each script handles:
 
-1. Downloading and installing the supervisor package (or using a local file)
+1. Downloading and installing the supervisor package (via direct URL, local file, or `--version` which auto-constructs the download URL for the detected OS/architecture)
 2. Generating `supervisor-config.yaml` from the provided endpoint and secret key
 3. Optionally downloading a collector binary
 4. Registering and starting the system service

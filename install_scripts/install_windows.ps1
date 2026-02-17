@@ -18,6 +18,7 @@ param(
     [switch]$Uninstall,
     [string]$DownloadURL,
     [string]$FilePath,
+    [string]$Version,
     [string]$CollectorURL,
     [string]$Endpoint,
     [string]$SecretKey
@@ -45,15 +46,16 @@ Options:
   -Uninstall           Uninstall bindplane-supervisor and remove all associated files
   -DownloadURL <url>   URL to download the supervisor MSI package
   -FilePath <path>     Path to a local MSI package file
+  -Version <version>   Release version to install (e.g. v0.145.0 or 0.145.0)
   -CollectorURL <url>  URL to download the collector binary
   -Endpoint <url>      (required for install) Bindplane endpoint URL (e.g. wss://app.bindplane.com/v1/opamp)
   -SecretKey <key>     (required for install) Bindplane secret key for authentication
 
 PowerShell supports parameter abbreviation. You can shorten any parameter
 to its unique prefix (e.g. -E for -Endpoint, -S for -SecretKey, -D for
--DownloadURL, -F for -FilePath, -C for -CollectorURL).
+-DownloadURL, -F for -FilePath, -C for -CollectorURL, -V for -Version).
 
-If neither -DownloadURL nor -FilePath is provided, the script
+If none of -DownloadURL, -FilePath, or -Version is provided, the script
 checks for an existing installation and errors if none is found.
 "@
     exit 1
@@ -232,6 +234,23 @@ function Install-Collector {
     Write-Host "Collector installed successfully"
 }
 
+function Resolve-VersionURL {
+    # Strip leading 'v' if present to get bare version
+    $bareVersion = $Version -replace '^v', ''
+
+    # Detect architecture
+    $arch = switch ($env:PROCESSOR_ARCHITECTURE) {
+        "AMD64" { "amd64" }
+        default {
+            Write-Error "Error: unsupported architecture '$env:PROCESSOR_ARCHITECTURE'"
+            exit 1
+        }
+    }
+
+    $script:DownloadURL = "https://github.com/observIQ/supervisor/releases/download/v${bareVersion}/bindplane-supervisor_v${bareVersion}_windows_${arch}.msi"
+    Write-Host "Resolved version ${bareVersion} to URL: $DownloadURL"
+}
+
 function Uninstall-Supervisor {
     Write-Host "Uninstalling bindplane-supervisor..."
 
@@ -297,6 +316,21 @@ if ($DownloadURL -and $FilePath) {
     exit 1
 }
 
+if ($Version -and $DownloadURL) {
+    Write-Error "Error: -Version and -DownloadURL are mutually exclusive"
+    exit 1
+}
+
+if ($Version -and $FilePath) {
+    Write-Error "Error: -Version and -FilePath are mutually exclusive"
+    exit 1
+}
+
+# Resolve version to download URL if specified
+if ($Version) {
+    Resolve-VersionURL
+}
+
 # Supervisor installation
 if ($DownloadURL) {
     Download-AndInstallPackage -URL $DownloadURL
@@ -304,7 +338,7 @@ if ($DownloadURL) {
     Install-Package -File $FilePath
 } else {
     if (-not (Test-ServiceInstalled)) {
-        Write-Error "Error: no existing bindplane-supervisor installation found. Use -DownloadURL or -FilePath to install a package."
+        Write-Error "Error: no existing bindplane-supervisor installation found. Use -DownloadURL, -FilePath, or -Version to install a package."
         exit 1
     }
 }
