@@ -2,6 +2,9 @@ local
 supervisor-binaries
 release_deps
 dist
+windows-artifacts
+
+# macOS
 .DS_Store
 
 # claude local settings
