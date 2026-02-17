@@ -70,7 +70,7 @@ function Install-Package {
     }
 
     Write-Host "Installing package: $File"
-    $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$File`" /quiet /norestart" -Wait -PassThru
+    $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i", $File, "/quiet", "/norestart" -Wait -PassThru
     if ($process.ExitCode -ne 0) {
         Write-Error "Error: MSI installation failed with exit code $($process.ExitCode)"
         exit 1
@@ -92,7 +92,8 @@ function Download-AndInstallPackage {
     Write-Host "Downloading package from: $URL"
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri $URL -OutFile $tmpFile -UseBasicParsing
+        $wc = New-Object System.Net.WebClient
+        $wc.DownloadFile($URL, $tmpFile)
     } catch {
         Write-Error "Error: failed to download package: $_"
         exit 1
@@ -195,7 +196,7 @@ function Install-Collector {
     $collectorDir = Split-Path -Parent $CollectorBin
     Write-Host "Installing collector binary to: $CollectorBin"
     if (-not (Test-Path $collectorDir)) {
-        New-Item -ItemType Directory -Path $collectorDir | Out-Null
+        New-Item -ItemType Directory -Path $collectorDir -Force | Out-Null
     }
 
     $tmpDir = Join-Path $env:TEMP "bindplane-collector-install"
@@ -204,21 +205,23 @@ function Install-Collector {
     }
     New-Item -ItemType Directory -Path $tmpDir | Out-Null
 
-    $tmpFile = Join-Path $tmpDir "collector_download"
+    # Strip query parameters for file type detection
+    $urlPath = ($URL -split '\?')[0]
+
+    $tmpFileName = if ($urlPath -match '\.zip$') { "collector_download.zip" } else { "collector_download" }
+    $tmpFile = Join-Path $tmpDir $tmpFileName
 
     Write-Host "Downloading collector from: $URL"
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri $URL -OutFile $tmpFile -UseBasicParsing
+        $wc = New-Object System.Net.WebClient
+        $wc.DownloadFile($URL, $tmpFile)
     } catch {
         Write-Error "Error: failed to download collector: $_"
         Remove-Item -Recurse -Force $tmpDir
         exit 1
     }
     Write-Host "Download complete"
-
-    # Strip query parameters for file type detection
-    $urlPath = ($URL -split '\?')[0]
 
     if ($urlPath -match '\.zip$') {
         Write-Host "Extracting zip archive..."
@@ -331,6 +334,13 @@ if ($Version) {
     Resolve-VersionURL
 }
 
+# Collector download
+# Must happen before MSI installation because the MSI may start the supervisor
+# service, which requires the collector binary to be present at startup.
+if ($CollectorURL) {
+    Install-Collector -URL $CollectorURL
+}
+
 # Supervisor installation
 if ($DownloadURL) {
     Download-AndInstallPackage -URL $DownloadURL
@@ -343,17 +353,12 @@ if ($DownloadURL) {
     }
 }
 
-# Stop the service before modifying config or collector binary.
+# Stop the service before modifying config.
 # The MSI installer or a previous run may have started it.
 Stop-SupervisorService
 
 # Supervisor config update
 Update-SupervisorConfig
-
-# Collector download
-if ($CollectorURL) {
-    Install-Collector -URL $CollectorURL
-}
 
 # Start the service with the updated config and collector
 Start-SupervisorService
