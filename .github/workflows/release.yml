@@ -59,18 +59,25 @@ jobs:
           GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-      - name: Append Windows Checksums
-        env:
-          GH_TOKEN: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
+      - name: Create artifact archive
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          CHECKSUM_FILE="dist/bindplane-supervisor-${TAG}-SHA256SUMS"
-          # Compute checksums for windows artifacts
-          for f in windows-artifacts/*.zip windows-artifacts/*.msi; do
-            if [ -f "$f" ]; then
-              sha256sum "$f" | sed 's|windows-artifacts/||' >> "$CHECKSUM_FILE"
-            fi
-          done
-          # Upload windows artifacts and updated checksum file to the release
-          gh release upload "$TAG" windows-artifacts/*.zip windows-artifacts/*.msi --clobber
-          gh release upload "$TAG" "$CHECKSUM_FILE" --clobber
+          mkdir artifacts
+          cp ./install_scripts/*.sh ./artifacts
+          cp ./install_scripts/*.ps1 ./artifacts
+          cp ./dist/*.tar.gz ./artifacts
+          cp ./dist/*.rpm ./artifacts
+          cp ./dist/*.deb ./artifacts
+          cp ./dist/*SHA256SUMS ./artifacts
+          cp ./windows-artifacts/*.zip ./artifacts
+          cp ./windows-artifacts/*.msi ./artifacts
+          tar -czvf bindplane-supervisor-${{ github.ref_name }}-artifacts.tar.gz -C ./artifacts .
+      - name: Check Artifacts Directory
+        run: |
+          ls -la artifacts
+          du -sh artifacts
+      - name: Upload artifact bundle to release
+        uses: AButler/upload-release-assets@v2.0
+        with:
+          repo-token: ${{ secrets.ORG_GORELEASER_GITHUB_TOKEN }}
+          files: "bindplane-supervisor-${{ github.ref_name }}-artifacts.tar.gz*"
+          release-tag: ${{ github.ref_name }}

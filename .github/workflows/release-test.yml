@@ -72,7 +72,7 @@ jobs:
           cp ./dist/*SHA256SUMS ./artifacts
           cp ./windows-artifacts/*.zip ./artifacts
           cp ./windows-artifacts/*.msi ./artifacts
-          tar -czvf bindplane-supervisor-${{ github.event.inputs.version }}-artifacts.tar.gz -C ./artifacts .
+          tar -czvf bindplane-supervisor-${{ github.ref_name }}-artifacts.tar.gz -C ./artifacts .
       - name: Check Artifacts Directory
         run: |
           ls -la artifacts
@@ -80,6 +80,6 @@ jobs:
       - name: Upload build artifacts
         uses: namespace-actions/upload-artifact@v1
         with:
-          name: bindplane-supervisor-${{ github.event.inputs.version }}-artifacts.tar.gz
-          path: bindplane-supervisor-${{ github.event.inputs.version }}-artifacts.tar.gz
+          name: bindplane-supervisor-${{ github.ref_name }}-artifacts.tar.gz
+          path: bindplane-supervisor-${{ github.ref_name }}-artifacts.tar.gz
           retention-days: 1
