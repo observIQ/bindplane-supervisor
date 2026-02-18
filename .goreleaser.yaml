@@ -25,7 +25,7 @@ builds:
 # https://goreleaser.com/customization/archive/
 archives:
   - format: tar.gz
-    name_template: ""
+    name_template: "{{ .PackageName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - src: release_deps/LICENSE
         dst: "."
@@ -45,7 +45,7 @@ nfpms:
   - id: supervisor
     ids: 
       - supervisor
-    file_name_template: "{{ .PackageName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    file_name_template: "{{ .PackageName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     package_name: "bindplane-supervisor"
     vendor: Bindplane
     maintainer: Bindplane <support@bindplane.com>

@@ -231,7 +231,7 @@ resolve_version_url() {
     # Detect package manager for extension
     pkg_type=$(detect_package_manager)
 
-    DOWNLOAD_URL="https://github.com/observIQ/supervisor/releases/download/v${bare_version}/bindplane-supervisor_v${bare_version}_linux_${arch}.${pkg_type}"
+    DOWNLOAD_URL="https://github.com/observIQ/supervisor/releases/download/v${bare_version}/bindplane-supervisor_${bare_version}_linux_${arch}.${pkg_type}"
     echo "Resolved version ${bare_version} to URL: $DOWNLOAD_URL"
 }
 

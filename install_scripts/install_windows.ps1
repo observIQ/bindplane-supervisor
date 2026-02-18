@@ -250,7 +250,7 @@ function Resolve-VersionURL {
         }
     }
 
-    $script:DownloadURL = "https://github.com/observIQ/supervisor/releases/download/v${bareVersion}/bindplane-supervisor_v${bareVersion}_windows_${arch}.msi"
+    $script:DownloadURL = "https://github.com/observIQ/supervisor/releases/download/v${bareVersion}/bindplane-supervisor_${bareVersion}_windows_${arch}.msi"
     Write-Host "Resolved version ${bareVersion} to URL: $DownloadURL"
 }
 

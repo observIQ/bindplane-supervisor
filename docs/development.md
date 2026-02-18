@@ -95,16 +95,16 @@ SUPERVISOR_VERSION=v0.120.0 make release-test
 
 | Artifact | Platforms |
 |---|---|
-| `bindplane-supervisor_v*_linux_amd64.tar.gz` | Linux amd64 |
-| `bindplane-supervisor_v*_linux_arm64.tar.gz` | Linux arm64 |
-| `bindplane-supervisor_v*_darwin_amd64.tar.gz` | macOS amd64 |
-| `bindplane-supervisor_v*_darwin_arm64.tar.gz` | macOS arm64 |
-| `bindplane-supervisor_v*_windows_amd64.zip` | Windows amd64 |
-| `bindplane-supervisor_v*_linux_amd64.deb` | Debian/Ubuntu amd64 |
-| `bindplane-supervisor_v*_linux_arm64.deb` | Debian/Ubuntu arm64 |
-| `bindplane-supervisor_v*_linux_amd64.rpm` | RHEL/Fedora amd64 |
-| `bindplane-supervisor_v*_linux_arm64.rpm` | RHEL/Fedora arm64 |
-| `bindplane-supervisor_v*_windows_amd64.msi` | Windows amd64 |
+| `bindplane-supervisor_*_linux_amd64.tar.gz` | Linux amd64 |
+| `bindplane-supervisor_*_linux_arm64.tar.gz` | Linux arm64 |
+| `bindplane-supervisor_*_darwin_amd64.tar.gz` | macOS amd64 |
+| `bindplane-supervisor_*_darwin_arm64.tar.gz` | macOS arm64 |
+| `bindplane-supervisor_*_windows_amd64.zip` | Windows amd64 |
+| `bindplane-supervisor_*_linux_amd64.deb` | Debian/Ubuntu amd64 |
+| `bindplane-supervisor_*_linux_arm64.deb` | Debian/Ubuntu arm64 |
+| `bindplane-supervisor_*_linux_amd64.rpm` | RHEL/Fedora amd64 |
+| `bindplane-supervisor_*_linux_arm64.rpm` | RHEL/Fedora arm64 |
+| `bindplane-supervisor_*_windows_amd64.msi` | Windows amd64 |
 | `install_unix.sh` | Linux install script |
 | `install_darwin.sh` | macOS install script |
 | `install_windows.ps1` | Windows install script |

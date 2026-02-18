@@ -40,7 +40,7 @@ msi:
   - id: supervisor-msi
     ids:
       - supervisor
-    name: "bindplane-supervisor_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    name: "{{ .PackageName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     wxs: release_deps/windows/wix.wxs
     extra_files:
       - release_deps/windows/supervisor-config.yaml

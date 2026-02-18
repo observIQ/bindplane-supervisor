@@ -43,13 +43,23 @@ sudo sh install_unix.sh \
   -v "v0.145.0"
 ```
 
+Install a specific version with a collector binary:
+
+```sh
+sudo sh install_unix.sh \
+  -v "v0.145.0" \
+  -c "https://example.com/otelcol-contrib" \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY"
+```
+
 Install from a specific download URL:
 
 ```sh
 sudo sh install_unix.sh \
   -e "wss://app.bindplane.com/v1/opamp" \
   -s "YOUR_SECRET_KEY" \
-  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_linux_amd64.deb"
+  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_1.0.0_linux_amd64.deb"
 ```
 
 Install from a local package file:
@@ -58,7 +68,7 @@ Install from a local package file:
 sudo sh install_unix.sh \
   -e "wss://app.bindplane.com/v1/opamp" \
   -s "YOUR_SECRET_KEY" \
-  -f "./bindplane-supervisor_v1.0.0_linux_amd64.deb"
+  -f "./bindplane-supervisor_1.0.0_linux_amd64.deb"
 ```
 
 Install with a collector binary:
@@ -67,7 +77,7 @@ Install with a collector binary:
 sudo sh install_unix.sh \
   -e "wss://app.bindplane.com/v1/opamp" \
   -s "YOUR_SECRET_KEY" \
-  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_linux_amd64.deb" \
+  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_1.0.0_linux_amd64.deb" \
   -c "https://example.com/otelcol-contrib"
 ```
 
@@ -100,13 +110,23 @@ sudo sh install_darwin.sh \
   -v "v0.145.0"
 ```
 
+Install a specific version with a collector binary:
+
+```sh
+sudo sh install_darwin.sh \
+  -v "v0.145.0" \
+  -c "https://example.com/otelcol-contrib" \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY"
+```
+
 Install from a specific download URL:
 
 ```sh
 sudo sh install_darwin.sh \
   -e "wss://app.bindplane.com/v1/opamp" \
   -s "YOUR_SECRET_KEY" \
-  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_darwin_arm64.tar.gz"
+  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_1.0.0_darwin_arm64.tar.gz"
 ```
 
 Install from a local file:
@@ -115,7 +135,17 @@ Install from a local file:
 sudo sh install_darwin.sh \
   -e "wss://app.bindplane.com/v1/opamp" \
   -s "YOUR_SECRET_KEY" \
-  -f "./bindplane-supervisor_v1.0.0_darwin_arm64.tar.gz"
+  -f "./bindplane-supervisor_1.0.0_darwin_arm64.tar.gz"
+```
+
+Install with a collector binary:
+
+```sh
+sudo sh install_darwin.sh \
+  -e "wss://app.bindplane.com/v1/opamp" \
+  -s "YOUR_SECRET_KEY" \
+  -d "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_1.0.0_darwin_arm64.tar.gz" \
+  -c "https://example.com/otelcol-contrib"
 ```
 
 Uninstall:
@@ -139,13 +169,23 @@ Install a specific version (automatically detects architecture):
   -Version "v0.145.0"
 ```
 
+Install a specific version with a collector binary:
+
+```powershell
+.\install_windows.ps1 `
+  -Version "v0.145.0" `
+  -CollectorURL "https://example.com/otelcol-contrib.exe" `
+  -Endpoint "wss://app.bindplane.com/v1/opamp" `
+  -SecretKey "YOUR_SECRET_KEY"
+```
+
 Install from a download URL:
 
 ```powershell
 .\install_windows.ps1 `
   -Endpoint "wss://app.bindplane.com/v1/opamp" `
   -SecretKey "YOUR_SECRET_KEY" `
-  -DownloadURL "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_windows_amd64.msi"
+  -DownloadURL "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_1.0.0_windows_amd64.msi"
 ```
 
 Install from a local MSI file:
@@ -154,7 +194,7 @@ Install from a local MSI file:
 .\install_windows.ps1 `
   -Endpoint "wss://app.bindplane.com/v1/opamp" `
   -SecretKey "YOUR_SECRET_KEY" `
-  -FilePath ".\bindplane-supervisor_v1.0.0_windows_amd64.msi"
+  -FilePath ".\bindplane-supervisor_1.0.0_windows_amd64.msi"
 ```
 
 Install with a collector binary:
@@ -163,7 +203,7 @@ Install with a collector binary:
 .\install_windows.ps1 `
   -Endpoint "wss://app.bindplane.com/v1/opamp" `
   -SecretKey "YOUR_SECRET_KEY" `
-  -DownloadURL "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_v1.0.0_windows_amd64.msi" `
+  -DownloadURL "https://github.com/observIQ/supervisor/releases/download/v1.0.0/bindplane-supervisor_1.0.0_windows_amd64.msi" `
   -CollectorURL "https://example.com/otelcol-contrib.exe"
 ```
 
@@ -181,11 +221,13 @@ Uninstall:
 |---|---|---|---|
 | `-e, --endpoint` | `-Endpoint` | Yes | Bindplane endpoint URL |
 | `-s, --secret-key` | `-SecretKey` | Yes | Bindplane secret key |
-| `-d, --download-url` | `-DownloadURL` | No | URL to download the supervisor package |
-| `-f, --file-path` | `-FilePath` | No | Path to a local package file |
 | `-v, --version` | `-Version` | No | Release version to install (e.g. `v0.145.0`) |
 | `-c, --collector-url` | `-CollectorURL` | No | URL to download the collector binary |
+| `-d, --download-url` | `-DownloadURL` | No | URL to download the supervisor package |
+| `-f, --file-path` | `-FilePath` | No | Path to a local package file |
 | `--uninstall` | `-Uninstall` | No | Uninstall and remove all files |
+
+> **Note:** `-v`, `-d`, and `-f` are mutually exclusive — only one may be provided at a time.
 
 ## Configuration
 
